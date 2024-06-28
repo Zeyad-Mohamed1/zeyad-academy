@@ -25,8 +25,9 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import ResourceForm from "./ResourceForm";
-// import Delete from "../custom/Delete";
-// import PublishButton from "../custom/PublishButton";
+import MuxPlayer from "@mux/mux-player-react";
+import Delete from "@/components/custom/Delete";
+import PublishButton from "@/components/custom/PublishButton";
 
 const formSchema = z.object({
   title: z.string().min(2, {
@@ -66,11 +67,14 @@ const EditSectionForm = ({
   // 2. Define a submit handler.
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      await axios.patch(`/api/courses/${courseId}`, values);
-      toast.success("Course Updated");
+      await axios.post(
+        `/api/courses/${courseId}/sections/${section.id}`,
+        values
+      );
+      toast.success("Section Updated");
       router.refresh();
     } catch (err) {
-      console.log("Failed to update the course", err);
+      console.log("Failed to update the section", err);
       toast.error("Something went wrong!");
     }
   };
@@ -85,13 +89,14 @@ const EditSectionForm = ({
           </Button>
         </Link>
         <div className="flex gap-5 items-start">
-          {/* <PublishButton
+          <PublishButton
             disabled={!isCompleted}
-            courseId={course.id}
-            isPublished={course.isPublished}
-            page="Course"
+            courseId={courseId}
+            sectionId={section.id}
+            isPublished={section.isPublished}
+            page="Section"
           />
-          <Delete item="course" courseId={course.id} /> */}
+          <Delete item="section" courseId={courseId} sectionId={section.id} />
         </div>
       </div>
 
@@ -157,6 +162,15 @@ const EditSectionForm = ({
             )}
           />
 
+          {section.videoUrl && (
+            <div className="my-5">
+              <MuxPlayer
+                playbackId={section.muxData?.playbackId || ""}
+                className="md:max-w-[600px] "
+              />
+            </div>
+          )}
+
           <FormField
             control={form.control}
             name="videoUrl"
@@ -168,7 +182,7 @@ const EditSectionForm = ({
                     value={field.value || ""}
                     onChange={(url) => field.onChange(url)}
                     endpoint="sectionVideo"
-                    page="Edit Course"
+                    page="Edit Section"
                   />
                 </FormControl>
                 <FormMessage />

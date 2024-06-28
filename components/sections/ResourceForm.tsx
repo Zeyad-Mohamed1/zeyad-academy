@@ -101,9 +101,8 @@ const ResourceForm = ({ section, courseId }: ResourceFormProps) => {
               <File className="w-4 h-4 mr-4" />
               {resource.name}
             </div>
-            <button
+            <div
               onClick={() => onDelete(resource.id)}
-              disabled={isSubmitting}
               className="text-[#fdab04]"
             >
               {isSubmitting ? (
@@ -111,7 +110,7 @@ const ResourceForm = ({ section, courseId }: ResourceFormProps) => {
               ) : (
                 <X className="w-4 h-4" />
               )}
-            </button>
+            </div>
           </div>
         ))}
         <Form {...form}>

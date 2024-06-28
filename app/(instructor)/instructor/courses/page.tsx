@@ -5,6 +5,8 @@ import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import React from "react";
 import { db } from "@/lib/db";
+import { DataTable } from "@/components/custom/DataTable";
+import { columns } from "@/components/courses/Columns";
 
 const CoursesPage = async () => {
   const { userId } = auth();
@@ -29,14 +31,7 @@ const CoursesPage = async () => {
       </Link>
 
       <div className="mt-5">
-        {/* <DataTable columns={columns} data={courses} /> */}
-        {courses.map((course) => (
-          <div key={course.id}>
-            <Link href={`/instructor/courses/${course.id}/basic`}>
-              {course.title}
-            </Link>
-          </div>
-        ))}
+        <DataTable columns={columns} data={courses} />
       </div>
     </div>
   );

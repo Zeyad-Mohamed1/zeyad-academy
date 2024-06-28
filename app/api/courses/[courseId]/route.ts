@@ -1,7 +1,12 @@
 import { db } from "@/lib/db";
 import { auth } from "@clerk/nextjs/server";
+import Mux from "@mux/mux-node";
 import { NextRequest, NextResponse } from "next/server";
 
+const { video } = new Mux({
+  tokenId: process.env.MUX_TOKEN_ID,
+  tokenSecret: process.env.MUX_TOKEN_SECRET,
+});
 export const PATCH = async (
   req: NextRequest,
   { params }: { params: { courseId: string } }
@@ -28,6 +33,56 @@ export const PATCH = async (
     return NextResponse.json(course, { status: 200 });
   } catch (error) {
     console.log("[api/courses/[courseId]] PATCH", error);
+    return new NextResponse("Something went wrong", { status: 500 });
+  }
+};
+
+export const DELETE = async (
+  req: NextRequest,
+  { params }: { params: { courseId: string } }
+) => {
+  try {
+    const { userId } = auth();
+    const { courseId } = params;
+
+    if (!userId) {
+      return new NextResponse("Unauthorized", { status: 401 });
+    }
+
+    const course = await db.course.findUnique({
+      where: {
+        id: courseId,
+        instructorId: userId,
+      },
+      include: {
+        sections: {
+          include: {
+            muxData: true,
+          },
+        },
+      },
+    });
+
+    if (!course) {
+      return new NextResponse("Course not found", { status: 404 });
+    }
+
+    for (const section of course.sections) {
+      if (section.muxData?.assetId) {
+        await video.assets.delete(section.muxData.assetId);
+      }
+    }
+
+    await db.course.delete({
+      where: {
+        id: courseId,
+        instructorId: userId,
+      },
+    });
+
+    return NextResponse.json("Course deleted", { status: 200 });
+  } catch (error) {
+    console.log("[api/courses/[courseId]] DELETE", error);
     return new NextResponse("Something went wrong", { status: 500 });
   }
 };
